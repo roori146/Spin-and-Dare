@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Spin & Dare</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    :root {
+      --bg:#0a0a0a;--bg2:#111;--fg:#eae6de;--muted:#6b6760;
+      --accent:#d4ff2a;--accent-dim:#a8cc22;--card:#161614;
+      --border:#2a2824;--challenge:#d4ff2a;--dare:#ff6b35;
+      --hustle:#2ec8ff;--truth:#ff2e8a;
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    html{scroll-behavior:smooth;scrollbar-width:thin;scrollbar-color:var(--accent) var(--bg);}
+    body{font-family:'Space Grotesk',sans-serif;background:var(--bg);color:var(--fg);overflow-x:hidden;min-height:100vh;}
+    .font-display{font-family:'Syne',sans-serif;}
+    body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background:radial-gradient(ellipse 60% 50% at 20% 20%,rgba(212,255,42,0.04),transparent),
+                 radial-gradient(ellipse 50% 60% at 80% 80%,rgba(255,107,53,0.03),transparent),
+                 radial-gradient(ellipse 40% 40% at 50% 50%,rgba(46,200,255,0.02),transparent);}
+    body::after{content:'';position:fixed;inset:0;z-index:9999;pointer-events:none;opacity:0.03;
+      background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");}
+    nav{position:fixed;top:0;left:0;right:0;z-index:100;
+      background:rgba(10,10,10,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);}
+    .nav-link{position:relative;padding:0.5rem 0;color:var(--muted);transition:color 0.3s;cursor:pointer;font-weight:500;}
+    .nav-link:hover,.nav-link.active{color:var(--fg);}
+    .nav-link.active::after{content:'';position:absolute;bottom:-2px;left:0;right:0;height:2px;background:var(--accent);border-radius:1px;}
+    .view{display:none;position:relative;z-index:1;}
+    .view.active{display:block;animation:fadeIn 0.4s ease;}
+    @keyframes fadeIn{from{opacity:0;transform:translateY(16px);}to{opacity:1;transform:translateY(0);}}
+    #wheel-canvas{width:min(340px,78vw);height:min(340px,78vw);cursor:pointer;transition:transform 4.5s cubic-bezier(0.17,0.67,0.12,0.99);}
+    .wheel-pointer{width:0;height:0;border-left:16px solid transparent;border-right:16px solid transparent;
+      border-top:30px solid var(--accent);filter:drop-shadow(0 2px 8px rgba(212,255,42,0.4));position:relative;z-index:2;}
+    .wheel-glow{position:absolute;width:360px;height:360px;border-radius:50%;
+      background:radial-gradient(circle,rgba(212,255,42,0.08) 0%,transparent 70%);
+      animation:pulseGlow 3s ease-in-out infinite alternate;pointer-events:none;
+      top:50%;left:50%;transform:translate(-50%,-50%);}
+    @keyframes pulseGlow{0%{transform:translate(-50%,-50%) scale(0.95);opacity:0.6;}100%{transform:translate(-50%,-50%) scale(1.1);opacity:1;}}
+    .cat-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:99px;font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;}
+    .cat-challenge{background:rgba(212,255,42,0.15);color:var(--challenge);}
+    .cat-dare{background:rgba(255,107,53,0.15);color:var(--dare);}
+    .cat-hustle{background:rgba(46,200,255,0.15);color:var(--hustle);}
+    .cat-truth{background:rgba(255,46,138,0.15);color:var(--truth);}
+    .modal-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.75);backdrop-filter:blur(8px);
+      display:none;align-items:center;justify-content:center;padding:1rem;}
+    .modal-overlay.open{display:flex;animation:fadeIn 0.3s ease;}
+    .modal-box{background:var(--card);border:1px solid var(--border);border-radius:20px;max-width:480px;width:100%;
+      max-height:90vh;overflow-y:auto;padding:2rem;position:relative;}
+    .upload-zone{border:2px dashed var(--border);border-radius:12px;padding:2rem;text-align:center;
+      cursor:pointer;transition:border-color 0.3s,background 0.3s;}
+    .upload-zone:hover,.upload-zone.dragover{border-color:var(--accent);background:rgba(212,255,42,0.03);}
+    .upload-zone.has-image{border-style:solid;border-color:var(--accent-dim);}
+    .upload-zone img{max-height:160px;border-radius:8px;margin-top:0.5rem;}
+    .btn-primary{background:var(--accent);color:#0a0a0a;font-weight:700;padding:0.75rem 1.5rem;border-radius:12px;
+      border:none;cursor:pointer;font-size:0.95rem;transition:transform 0.2s,box-shadow 0.2s;font-family:inherit;}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(212,255,42,0.3);}
+    .btn-primary:active{transform:translateY(0);}
+    .btn-primary:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none;}
+    .btn-ghost{background:transparent;color:var(--muted);font-weight:500;padding:0.75rem 1.5rem;border-radius:12px;
+      border:1px solid var(--border);cursor:pointer;font-size:0.95rem;transition:color 0.3s,border-color 0.3s;font-family:inherit;}
+    .btn-ghost:hover{color:var(--fg);border-color:var(--muted);}
+    .lb-row{display:flex;align-items:center;gap:1rem;padding:0.85rem 1rem;border-radius:12px;
+      transition:background 0.2s;border:1px solid transparent;}
+    .lb-row:hover{background:rgba(255,255,255,0.02);}
+    .lb-row.is-user{background:rgba(212,255,42,0.06);border-color:rgba(212,255,42,0.15);}
+    .lb-rank{width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:8px;
+      font-weight:700;font-size:0.85rem;flex-shrink:0;}
+    .lb-rank.gold{background:rgba(255,215,0,0.15);color:#ffd700;}
+    .lb-rank.silver{background:rgba(192,192,192,0.15);color:#c0c0c0;}
+    .lb-rank.bronze{background:rgba(205,127,50,0.15);color:#cd7f32;}
+    .lb-avatar{width:36px;height:36px;border-radius:10px;object-fit:cover;flex-shrink:0;background:var(--border);}
+    .chat-btn{position:fixed;bottom:1.5rem;right:1.5rem;z-index:150;width:56px;height:56px;border-radius:50%;
+      background:var(--accent);color:#0a0a0a;border:none;cursor:pointer;font-size:1.3rem;
+      box-shadow:0 4px 24px rgba(212,255,42,0.3);transition:transform 0.2s,box-shadow 0.2s;display:flex;align-items:center;justify-content:center;}
+    .chat-btn:hover{transform:scale(1.08);box-shadow:0 6px 32px rgba(212,255,42,0.4);}
+    .chat-panel{position:fixed;bottom:5.5rem;right:1.5rem;z-index:150;width:min(380px,90vw);height:480px;
+      background:var(--card);border:1px solid var(--border);border-radius:20px;display:none;flex-direction:column;overflow:hidden;
+      box-shadow:0 20px 60px rgba(0,0,0,0.5);}
+    .chat-panel.open{display:flex;animation:chatSlide 0.3s ease;}
+    @keyframes chatSlide{from{opacity:0;transform:translateY(20px) scale(0.95);}to{opacity:1;transform:translateY(0) scale(1);}}
+    .chat-messages{flex:1;overflow-y:auto;padding:1rem;display:flex;flex-direction:column;gap:0.75rem;}
+    .chat-bubble{max-width:85%;padding:0.7rem 1rem;border-radius:14px;font-size:0.9rem;line-height:1.5;word-wrap:break-word;white-space:pre-line;}
+    .chat-bubble.ai{background:var(--bg);border:1px solid var(--border);align-self:flex-start;border-bottom-left-radius:4px;}
+    .chat-bubble.user{background:rgba(212,255,42,0.12);color:var(--fg);align-self:flex-end;border-bottom-right-radius:4px;}
+    .chat-input-area{display:flex;gap:0.5rem;padding:0.75rem;border-top:1px solid var(--border);background:var(--bg);}
+    .chat-input-area input{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+      padding:0.6rem 1rem;color:var(--fg);font-family:inherit;font-size:0.9rem;outline:none;transition:border-color 0.3s;}
+    .chat-input-area input:focus{border-color:var(--accent-dim);}
+    .chat-input-area button{background:var(--accent);color:#0a0a0a;border:none;border-radius:10px;width:40px;
+      cursor:pointer;font-size:1rem;transition:opacity 0.2s;display:flex;align-items:center;justify-content:center;}
+    .chat-input-area button:hover{opacity:0.85;}
+    #toast-container{position:fixed;top:5rem;right:1.5rem;z-index:300;display:flex;flex-direction:column;gap:0.5rem;}
+    .toast{padding:0.75rem 1.25rem;border-radius:12px;font-size:0.85rem;font-weight:500;
+      transform:translateX(120%);transition:transform 0.3s ease;max-width:320px;
+      box-shadow:0 8px 24px rgba(0,0,0,0.3);}
+    .toast.show{transform:translateX(0);}
+    .toast-success{background:#1a2e1a;color:#7ddf7d;border:1px solid #2a4a2a;}
+    .toast-error{background:#2e1a1a;color:#df7d7d;border:1px solid #4a2a2a;}
+    .toast-info{background:#1a1a2e;color:#7d7ddf;border:1px solid #2a2a4a;}
+    .toast-warning{background:#2e2a1a;color:#dfc47d;border:1px solid #4a422a;}
+    @keyframes confettiBurst{
+      0%{transform:translate(0,0) rotate(0deg) scale(1);opacity:1;}
+      100%{transform:translate(var(--tx),var(--ty)) rotate(var(--r)) scale(0);opacity:0;}}
+    #onboarding{position:fixed;inset:0;z-index:500;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:1rem;}
+    #onboarding.hidden{display:none;}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:1.25rem;text-align:center;transition:border-color 0.3s;}
+    .stat-card:hover{border-color:var(--muted);}
+    .history-item{display:flex;gap:1rem;padding:1rem;border-radius:12px;background:var(--card);border:1px solid var(--border);transition:border-color 0.3s;}
+    .history-item:hover{border-color:var(--muted);}
+    .history-item img{width:60px;height:60px;border-radius:8px;object-fit:cover;flex-shrink:0;background:var(--border);}
+    .lock-overlay{position:absolute;inset:0;background:rgba(10,10,10,0.85);backdrop-filter:blur(6px);
+      border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:2;}
+    
+    /* Admin & Updates Styles */
+    .update-item{position:relative;padding-left:1.5rem;border-left:2px solid var(--border);padding-bottom:1.5rem;}
+    .update-item:last-child{border-left-color:transparent;}
+    .update-item::before{content:'';position:absolute;left:-5px;top:0;width:8px;height:8px;border-radius:50%;background:var(--accent);}
+    .admin-row{display:flex;align-items:center;gap:0.5rem;padding:0.5rem;border-bottom:1px solid var(--border);}
+    .admin-input{width:80px;background:var(--bg2);border:1px solid var(--border);color:var(--fg);padding:4px 8px;border-radius:6px;}
+    .btn-sm{padding:0.25rem 0.75rem;font-size:0.8rem;border-radius:6px;cursor:pointer;border:none;font-weight:600;}
+    .btn-danger{background:rgba(255,107,53,0.2);color:var(--dare);border:1px solid rgba(255,107,53,0.4);}
+    .btn-danger:hover{background:var(--dare);color:#fff;}
+    
+    ::-webkit-scrollbar{width:6px;}
+    ::-webkit-scrollbar-track{background:transparent;}
+    ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+    ::-webkit-scrollbar-thumb:hover{background:var(--muted);}
+    @media(prefers-reduced-motion:reduce){*{animation-duration:0.01ms !important;transition-duration:0.01ms !important;}}
+    @media(max-width:640px){.wheel-glow{width:280px;height:280px;}.chat-panel{height:400px;right:0.75rem;bottom:5rem;}
+      .chat-btn{bottom:1rem;right:1rem;width:48px;height:48px;font-size:1.1rem;}}
+  </style>
+</head>
+<body>
+
+  <div id="toast-container"></div>
+
+  <div id="onboarding">
+    <div class="text-center max-w-md">
+      <div class="text-6xl mb-4 font-display font-extrabold" style="color:var(--accent);line-height:1;">Spin & Dare</div>
+      <p class="text-lg mb-2" style="color:var(--fg);">Spin the wheel. Complete challenges. Climb the leaderboard.</p>
+      <p class="mb-8" style="color:var(--muted);font-size:0.9rem;">Challenges, dares, side hustles, and truths — with photo proof to earn points.</p>
+      <div class="mb-4">
+        <input id="username-input" type="text" maxlength="16" placeholder="Pick a username..."
+          style="width:100%;padding:0.85rem 1.2rem;border-radius:12px;border:1px solid var(--border);background:var(--bg2);
+          color:var(--fg);font-family:inherit;font-size:1rem;outline:none;text-align:center;transition:border-color 0.3s;"
+          onfocus="this.style.borderColor='var(--accent-dim)'" onblur="this.style.borderColor='var(--border)'" />
+      </div>
+      <button class="btn-primary" style="width:100%;" onclick="completeOnboarding()">Let's Go</button>
+    </div>
+  </div>
+
+  <nav>
+    <div class="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between overflow-x-auto no-scrollbar">
+      <div class="font-display font-extrabold text-lg whitespace-nowrap" style="color:var(--accent);">Spin & Dare</div>
+      <div class="flex items-center gap-6 text-sm whitespace-nowrap">
+        <span class="nav-link active" data-view="spin" onclick="switchView('spin')"><i class="fa-solid fa-circle-notch mr-1"></i>Spin</span>
+        <span class="nav-link" data-view="board" onclick="switchView('board')"><i class="fa-solid fa-trophy mr-1"></i>Board</span>
+        <span class="nav-link" data-view="create" onclick="switchView('create')"><i class="fa-solid fa-plus mr-1"></i>Create</span>
+        <span class="nav-link" data-view="profile" onclick="switchView('profile')"><i class="fa-solid fa-user mr-1"></i>Profile</span>
+        <span class="nav-link" data-view="updates" onclick="switchView('updates')"><i class="fa-solid fa-code-commit mr-1"></i>Updates</span>
+      </div>
+      <div class="flex items-center gap-2 text-sm font-semibold whitespace-nowrap" style="color:var(--accent);">
+        <i class="fa-solid fa-bolt"></i>
+        <span id="nav-points">0</span>
+      </div>
+    </div>
+  </nav>
+
+  <main class="max-w-5xl mx-auto px-4 pt-24 pb-16">
+
+    <section id="view-spin" class="view active">
+      <div class="flex flex-col items-center">
+        <p class="text-sm mb-6" style="color:var(--muted);">Tap the wheel to spin</p>
+        <div class="relative flex flex-col items-center mb-8">
+          <div class="wheel-pointer mb-[-6px]"></div>
+          <div class="wheel-glow"></div>
+          <canvas id="wheel-canvas" width="680" height="680" onclick="spinWheel()"></canvas>
+        </div>
+        <div class="flex flex-wrap justify-center gap-3 mb-10">
+          <span class="cat-badge cat-challenge"><span style="width:8px;height:8px;border-radius:50%;background:var(--challenge);display:inline-block;"></span>Challenge 30pt</span>
+          <span class="cat-badge cat-dare"><span style="width:8px;height:8px;border-radius:50%;background:var(--dare);display:inline-block;"></span>Dare 50pt</span>
+          <span class="cat-badge cat-hustle"><span style="width:8px;height:8px;border-radius:50%;background:var(--hustle);display:inline-block;"></span>Side Hustle 40pt</span>
+          <span class="cat-badge cat-truth"><span style="width:8px;height:8px;border-radius:50%;background:var(--truth);display:inline-block;"></span>Truth 20pt</span>
+        </div>
+        <div id="last-completed" class="w-full max-w-md" style="display:none;">
+          <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color:var(--muted);">Last Completed</p>
+          <div id="last-completed-content" class="history-item"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-board" class="view">
+      <h2 class="font-display font-extrabold text-3xl mb-1">Global Leaderboard</h2>
+      <p class="mb-6" style="color:var(--muted);font-size:0.9rem;">Complete tasks with photo proof to climb the ranks.</p>
+      <div id="leaderboard-list" class="flex flex-col gap-2"></div>
+    </section>
+
+    <section id="view-create" class="view">
+      <div class="relative">
+        <div id="create-locked" class="lock-overlay">
+          <i class="fa-solid fa-lock text-3xl" style="color:var(--muted);"></i>
+          <p class="font-display font-bold text-lg">Create Your Own Prompts</p>
+          <p style="color:var(--muted);font-size:0.9rem;text-align:center;max-width:280px;">
+            Earn <strong style="color:var(--accent);">200 points</strong> to unlock custom prompt creation.
+          </p>
+          <p class="font-semibold" style="color:var(--accent);"><span id="create-progress">0</span> / 200 pts</p>
+          <div style="width:200px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+            <div id="create-progress-bar" style="width:0%;height:100%;background:var(--accent);border-radius:3px;transition:width 0.5s ease;"></div>
+          </div>
+        </div>
+        <h2 class="font-display font-extrabold text-3xl mb-1">Create a Prompt</h2>
+        <p class="mb-6" style="color:var(--muted);font-size:0.9rem;">Add your own challenges, dares, side hustles, or truths for everyone to get.</p>
+        <div class="max-w-lg">
+          <label class="block text-sm font-semibold mb-2">Category</label>
+          <div class="flex flex-wrap gap-2 mb-4" id="create-category-btns">
+            <button class="btn-ghost text-sm cat-btn" data-cat="challenge" onclick="selectCreateCat('challenge')">Challenge</button>
+            <button class="btn-ghost text-sm cat-btn" data-cat="dare" onclick="selectCreateCat('dare')">Dare</button>
+            <button class="btn-ghost text-sm cat-btn" data-cat="sidehustle" onclick="selectCreateCat('sidehustle')">Side Hustle</button>
+            <button class="btn-ghost text-sm cat-btn" data-cat="truth" onclick="selectCreateCat('truth')">Truth</button>
+          </div>
+          <label class="block text-sm font-semibold mb-2">Your Prompt</label>
+          <textarea id="create-text" rows="3" maxlength="200" placeholder="Write something fun, wild, or useful..."
+            style="width:100%;padding:0.85rem 1rem;border-radius:12px;border:1px solid var(--border);background:var(--bg2);
+            color:var(--fg);font-family:inherit;font-size:0.95rem;outline:none;resize:vertical;transition:border-color 0.3s;"
+            onfocus="this.style.borderColor='var(--accent-dim)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+          <div class="flex items-center justify-between mt-3">
+            <span id="create-char-count" class="text-xs" style="color:var(--muted);">0 / 200</span>
+            <button class="btn-primary text-sm" onclick="submitCustomPrompt()">Add Prompt</button>
+          </div>
+        </div>
+        <div class="mt-8">
+          <p class="text-xs font-semibold uppercase tracking-wider mb-3" style="color:var(--muted);">Your Custom Prompts</p>
+          <div id="custom-prompts-list" class="flex flex-col gap-2"></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-profile" class="view">
+      <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8">
+        <div class="w-20 h-20 rounded-2xl flex items-center justify-center font-display font-extrabold text-3xl"
+          style="background:rgba(212,255,42,0.1);color:var(--accent);" id="profile-avatar">?</div>
+        <div>
+          <h2 class="font-display font-extrabold text-3xl" id="profile-name">Player</h2>
+          <p style="color:var(--muted);font-size:0.9rem;">Rank <span id="profile-rank" class="font-semibold" style="color:var(--accent);">#--</span> worldwide</p>
+        </div>
+        <div style="margin-left:auto;" id="admin-btn-container" style="display:none;">
+            <button class="btn-primary" style="background:var(--dare);" onclick="switchView('admin')">Admin Panel</button>
+        </div>
+      </div>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-8">
+        <div class="stat-card">
+          <div class="text-2xl font-bold font-display" style="color:var(--accent);" id="profile-points">0</div>
+          <div class="text-xs mt-1" style="color:var(--muted);">Total Points</div>
+        </div>
+        <div class="stat-card">
+          <div class="text-2xl font-bold font-display" id="profile-completed">0</div>
+          <div class="text-xs mt-1" style="color:var(--muted);">Completed</div>
+        </div>
+        <div class="stat-card">
+          <div class="text-2xl font-bold font-display" style="color:var(--challenge);" id="profile-challenges">0</div>
+          <div class="text-xs mt-1" style="color:var(--muted);">Challenges</div>
+        </div>
+        <div class="stat-card">
+          <div class="text-2xl font-bold font-display" style="color:var(--dare);" id="profile-dares">0</div>
+          <div class="text-xs mt-1" style="color:var(--muted);">Dares</div>
+        </div>
+      </div>
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-xs font-semibold uppercase tracking-wider" style="color:var(--muted);">Completion History</p>
+        <button class="text-xs font-semibold cursor-pointer" style="color:var(--dare);background:none;border:none;font-family:inherit;"
+          onclick="resetProgress()">Reset All Progress</button>
+      </div>
+      <div id="profile-history" class="flex flex-col gap-2"></div>
+      <p id="profile-empty" class="text-center py-12" style="color:var(--muted);display:none;">
+        No completed tasks yet. Spin the wheel to get started!
+      </p>
+    </section>
+
+    <section id="view-updates" class="view">
+      <h2 class="font-display font-extrabold text-3xl mb-6">Update Logs</h2>
+      <div class="max-w-2xl ml-2">
+        <div class="update-item">
+          <div class="flex items-baseline gap-2 mb-1">
+            <h3 class="font-bold text-lg" style="color:var(--accent);">Version 1.2</h3>
+            <span class="text-xs" style="color:var(--muted);">Latest</span>
+          </div>
+          <p class="text-sm mb-1" style="color:var(--fg);">Added Owner/Admin Controls.</p>
+          <ul class="text-sm list-disc list-inside" style="color:var(--muted);">
+            <li>Owners can now Ban players (removes from leaderboard).</li>
+            <li>Owners can Add/Remove points from any player.</li>
+            <li>Added "Updates" tab to track version history.</li>
+          </ul>
+        </div>
+        <div class="update-item">
+          <div class="flex items-baseline gap-2 mb-1">
+            <h3 class="font-bold text-lg" style="color:var(--fg);">Version 1.1</h3>
+          </div>
+          <p class="text-sm mb-1" style="color:var(--fg);">Interaction & AI Improvements.</p>
+          <ul class="text-sm list-disc list-inside" style="color:var(--muted);">
+            <li>Fixed Spacebar triggering spin while typing in chat.</li>
+            <li>Expanded AI vocabulary for less repetitive responses.</li>
+            <li>Minor UI polish and animations.</li>
+          </ul>
+        </div>
+        <div class="update-item">
+          <div class="flex items-baseline gap-2 mb-1">
+            <h3 class="font-bold text-lg" style="color:var(--fg);">Version 1.0</h3>
+          </div>
+          <p class="text-sm mb-1" style="color:var(--fg);">Initial Launch.</p>
+          <ul class="text-sm list-disc list-inside" style="color:var(--muted);">
+            <li>Spin the wheel mechanics.</li>
+            <li>Challenge, Dare, Hustle, and Truth categories.</li>
+            <li>Photo proof system with local storage.</li>
+            <li>Global Leaderboard simulation.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section id="view-admin" class="view">
+        <h2 class="font-display font-extrabold text-3xl mb-1" style="color:var(--dare);">Admin Panel</h2>
+        <p class="mb-6" style="color:var(--muted);font-size:0.9rem;">Manage players and leaderboard data.</p>
+        
+        <div class="bg:var(--card) border border:var(--border) rounded-xl p-4 mb-6" style="background:var(--card);border:1px solid var(--border);">
+            <h3 class="font-bold text-lg mb-4">Player Management</h3>
+            <div class="flex flex-col gap-2" id="admin-player-list">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+    </section>
+
+  </main>
+
+  <div class="modal-overlay" id="task-modal">
+    <div class="modal-box">
+      <button onclick="closeTaskModal()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--muted);cursor:pointer;font-size:1.2rem;">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+      <div id="modal-cat-badge" class="cat-badge mb-4"></div>
+      <p class="font-display font-bold text-xl mb-2" id="modal-task-text"></p>
+      <p class="text-sm mb-5" style="color:var(--muted);"><i class="fa-solid fa-bolt mr-1" style="color:var(--accent);"></i><span id="modal-points"></span></p>
+      <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
+        <input type="file" id="file-input" accept="image/*" style="display:none;" onchange="handleFileSelect(event)" />
+        <div id="upload-placeholder">
+          <i class="fa-solid fa-camera text-2xl mb-2" style="color:var(--muted);"></i>
+          <p class="text-sm" style="color:var(--muted);">Tap to upload photo proof</p>
+          <p class="text-xs mt-1" style="color:var(--border);">JPG, PNG, GIF accepted</p>
+        </div>
+        <div id="upload-preview" style="display:none;"></div>
+      </div>
+      <div class="flex gap-3 mt-5">
+        <button class="btn-primary flex-1" id="submit-proof-btn" disabled onclick="submitProof()">Submit Proof</button>
+        <button class="btn-ghost" onclick="closeTaskModal()">Skip</button>
+      </div>
+    </div>
+  </div>
+
+  <button class="chat-btn" onclick="toggleChat()" aria-label="Open AI assistant">
+    <i class="fa-solid fa-bolt"></i>
+  </button>
+
+  <div class="chat-panel" id="chat-panel">
+    <div class="flex items-center gap-3 px-4 py-3 border-b" style="border-color:var(--border);">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold" style="background:var(--accent);color:#0a0a0a;">S</div>
+      <div>
+        <div class="text-sm font-bold">Spark</div>
+        <div class="text-xs" style="color:var(--muted);">Your Spin & Dare guide</div>
+      </div>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-area">
+      <input type="text" id="chat-input" placeholder="Ask me anything..." maxlength="200" autocomplete="off"
+        onkeydown="if(event.key==='Enter')sendChat()" />
+      <button onclick="sendChat()" aria-label="Send"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
+
+  <script>
+    /* ===================== DATA ===================== */
+    const TASKS = {
+      challenge: [
+        {id:'c1',text:"Take a photo of something yellow you find outside"},
+        {id:'c2',text:"Build the tallest free-standing tower you can in 5 minutes"},
+        {id:'c3',text:"Draw a self-portrait using only circles and lines"},
+        {id:'c4',text:"Cook a meal using exactly 3 ingredients"},
+        {id:'c5',text:"Hold a plank for 60 seconds (video proof works too)"},
+        {id:'c6',text:"Write a 4-line poem about the last thing you ate"},
+        {id:'c7',text:"Organize one drawer or shelf completely"},
+        {id:'c8',text:"Learn and perform a coin trick"},
+        {id:'c9',text:"Create an origami animal and photograph it"},
+        {id:'c10',text:"Take a photo that makes a small object look giant"},
+        {id:'c11',text:"Walk 5000 steps and show your step counter"},
+        {id:'c12',text:"Make someone laugh and capture their reaction"},
+      ],
+      dare: [
+        {id:'d1',text:"Post your most embarrassing photo as your profile pic for 24 hours"},
+        {id:'d2',text:"Call a friend and sing Happy Birthday even if it's not their birthday"},
+        {id:'d3',text:"Wear your clothes inside out for the next 3 hours"},
+        {id:'d4',text:"Send a voice note apologizing to furniture you bumped into"},
+        {id:'d5',text:"Record a dramatic reading of your last grocery list"},
+        {id:'d6',text:"Ask a stranger for their autograph"},
+        {id:'d7',text:"Do your best robot dance in a public place"},
+        {id:'d8',text:"Eat a spoonful of a condiment you don't usually eat plain"},
+        {id:'d9',text:"Text 'Mom' a ridiculous conspiracy theory"},
+        {id:'d10',text:"Speak in third person for the next full hour"},
+      ],
+      sidehustle: [
+        {id:'h1',text:"Set up a listing for something you could sell online (screenshot it)"},
+        {id:'h2',text:"Create a social media page for a fictional business"},
+        {id:'h3',text:"Write 3 genuine product reviews for items you own"},
+        {id:'h4',text:"Design a simple logo using only free tools"},
+        {id:'h5',text:"Research and write a 200-word guide about something you know"},
+        {id:'h6',text:"Find 3 freelance gigs you could apply for and screenshot them"},
+        {id:'h7',text:"Create a realistic monthly budget with actual numbers"},
+        {id:'h8',text:"Set up a digital tip jar or payment link"},
+        {id:'h9',text:"Write a sample blog post about your favorite hobby"},
+        {id:'h10',text:"Photograph 5 items from your house you could flip for profit"},
+      ],
+      truth: [
+        {id:'t1',text:"What's a belief you held strongly that you've completely changed your mind about?"},
+        {id:'t2',text:"What's the most ridiculous amount of money you've spent on something?"},
+        {id:'t3',text:"What's a secret skill you have that almost nobody knows about?"},
+        {id:'t4',text:"What's the worst advice you've ever followed?"},
+        {id:'t5',text:"If you could swap lives with anyone for a day, who and why?"},
+        {id:'t6',text:"What's a lie you told as a kid that you actually got away with?"},
+        {id:'t7',text:"What's the most embarrassing thing on your search history?"},
+        {id:'t8',text:"What's a compliment you received that you still think about?"},
+        {id:'t9',text:"What's something everyone loves that you absolutely can't stand?"},
+        {id:'t10',text:"What's a promise you made to yourself that you broke?"},
+      ]
+    };
+
+    const CAT_META = {
+      challenge:{label:'Challenge',color:'var(--challenge)',badgeClass:'cat-challenge',points:30},
+      dare:{label:'Dare',color:'var(--dare)',badgeClass:'cat-dare',points:50},
+      sidehustle:{label:'Side Hustle',color:'var(--hustle)',badgeClass:'cat-hustle',points:40},
+      truth:{label:'Truth',color:'var(--truth)',badgeClass:'cat-truth',points:20}
+    };
+
+    // Default players - used to initialize state if empty
+    const DEFAULT_PLAYERS = [
+      {name:'SpinLord',points:2450,completed:67,banned:false},{name:'DareQueen',points:2180,completed:54,banned:false},
+      {name:'HustleBoss',points:1920,completed:51,banned:false},{name:'TruthSeeker42',points:1740,completed:63,banned:false},
+      {name:'NightOwl_99',points:1560,completed:44,banned:false},{name:'PixelQueen',points:1380,completed:39,banned:false},
+      {name:'WildcardAce',points:1210,completed:35,banned:false},{name:'ChallengeKing',points:1050,completed:31,banned:false},
+      {name:'SpinMaster',points:890,completed:26,banned:false},{name:'DareDevil_X',points:740,completed:22,banned:false},
+      {name:'MoonWalker',points:610,completed:18,banned:false},{name:'FireStarter',points:490,completed:15,banned:false},
+      {name:'IceBreaker',points:370,completed:11,banned:false},{name:'ThunderBolt',points:260,completed:8,banned:false},
+      {name:'GhostRider',points:170,completed:5,banned:false},{name:'ShadowFox',points:110,completed:3,banned:false},
+      {name:'NovaStar',points:60,completed:2,banned:false},{name:'PixelDust',points:30,completed:1,banned:false},
+    ];
+
+    /* ===================== STATE ===================== */
+    let state = { 
+      username:'', 
+      points:0, 
+      completed:[], 
+      customPrompts:[], 
+      spinning:false,
+      players: [] // Will hold the player list including modifications
+    };
+
+    function loadState(){
+      try{ 
+        const s=localStorage.getItem('spinanddare_state'); 
+        if(s) state={...state,...JSON.parse(s)}; 
+        
+        // Load players separately or initialize
+        let savedPlayers = localStorage.getItem('spinanddare_players');
+        if(savedPlayers) {
+          state.players = JSON.parse(savedPlayers);
+        } else {
+          state.players = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
+        }
+      }catch(e){
+        // Fallback if corrupted
+        state.players = JSON.parse(JSON.stringify(DEFAULT_PLAYERS));
+      }
+    }
+
+    function saveState(){
+      try{ 
+        localStorage.setItem('spinanddare_state', JSON.stringify(state)); 
+        // Save players separately to persist admin changes
+        localStorage.setItem('spinanddare_players', JSON.stringify(state.players));
+      }
+      catch(e){ showToast('Storage full! Try resetting progress.','error'); }
+    }
+
+    /* ===================== UTILS ===================== */
+    function showToast(msg, type='info'){
+      const c=document.getElementById('toast-container'), t=document.createElement('div');
+      t.className=`toast toast-${type}`; t.textContent=msg; c.appendChild(t);
+      requestAnimationFrame(()=>t.classList.add('show'));
+      setTimeout(()=>{t.classList.remove('show');setTimeout(()=>t.remove(),300);},3000);
+    }
+
+    function launchConfetti(){
+      const colors=['#d4ff2a','#ff6b35','#2ec8ff','#ff2e8a','#ffffff','#ffd700'];
+      for(let i=0;i<60;i++){
+        const el=document.createElement('div'),a=Math.random()*Math.PI*2,d=100+Math.random()*200;
+        el.style.cssText=`position:fixed;width:${4+Math.random()*6}px;height:${4+Math.random()*6}px;
+          background:${colors[Math.floor(Math.random()*colors.length)]};
+          left:50%;top:50%;border-radius:${Math.random()>0.5?'50%':'2px'};z-index:998;pointer-events:none;
+          --tx:${Math.cos(a)*d}px;--ty:${Math.sin(a)*d-100}px;--r:${Math.random()*1440-720}deg;
+          animation:confettiBurst ${0.8+Math.random()*0.8}s ease-out forwards;`;
+        document.body.appendChild(el); setTimeout(()=>el.remove(),2000);
+      }
+    }
+
+    function resizeImage(file,maxW,maxH,cb){
+      const r=new FileReader();
+      r.onload=function(e){
+        const img=new Image();
+        img.onload=function(){
+          const cv=document.createElement('canvas');let w=img.width,h=img.height;
+          if(w>maxW||h>maxH){const r2=Math.min(maxW/w,maxH/h);w*=r2;h*=r2;}
+          cv.width=w;cv.height=h;cv.getContext('2d').drawImage(img,0,0,w,h);
+          cb(cv.toDataURL('image/jpeg',0.6));
+        }; img.src=e.target.result;
+      }; r.readAsDataURL(file);
+    }
+
+    function getRank(){
+      // Filter out banned players for rank calculation
+      const activePlayers = state.players.filter(p => !p.banned);
+      // Add current user if they aren't already in the list (should be handled by renderLeaderboard logic ideally, but for safety)
+      let all = [...activePlayers];
+      const existingUserIndex = all.findIndex(p => p.name === state.username);
+      
+      // Create a temporary user object for rank calculation
+      const currentUserObj = {name:state.username, points:state.points, completed:state.completed.length, isUser:true, banned:false};
+
+      if(existingUserIndex >= 0) {
+          all[existingUserIndex] = currentUserObj;
+      } else {
+          all.push(currentUserObj);
+      }
+
+      all.sort((a,b)=>b.points-a.points); 
+      return all.findIndex(p=>p.isUser)+1;
+    }
+
+    function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+
+    /* ===================== ONBOARDING ===================== */
+    function completeOnboarding(){
+      const inp=document.getElementById('username-input'), name=inp.value.trim();
+      if(!name){inp.style.borderColor='var(--dare)';return;}
+      state.username=name; saveState();
+      document.getElementById('onboarding').classList.add('hidden');
+      checkAdminAccess(); // Check if user is admin
+      updateAllUI();
+      showToast(`Welcome, ${name}! Spin the wheel to begin.`,'success');
+    }
+
+    /* ===================== VIEWS ===================== */
+    function switchView(view){
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      document.getElementById('view-'+view).classList.add('active');
+      document.querySelectorAll('.nav-link').forEach(l=>l.classList.toggle('active',l.dataset.view===view));
+      
+      if(view==='board') renderLeaderboard();
+      if(view==='profile') renderProfile();
+      if(view==='create') renderCreateView();
+      if(view==='admin') renderAdminPanel();
+    }
+
+    function updateAllUI(){
+      document.getElementById('nav-points').textContent=state.points;
+      renderLastCompleted();
+    }
+
+    /* ===================== WHEEL ===================== */
+    let currentRotation=0;
+
+    function drawWheel(){
+      const canvas=document.getElementById('wheel-canvas'), ctx=canvas.getContext('2d');
+      const dpr=window.devicePixelRatio||1, displaySize=340;
+      canvas.width=displaySize*dpr; canvas.height=displaySize*dpr; ctx.scale(dpr,dpr);
+      const center=displaySize/2, radius=center-14;
+      const cats=[
+        {name:'CHALLENGE',color:'#d4ff2a',pts:'30 pts'},
+        {name:'DARE',color:'#ff6b35',pts:'50 pts'},
+        {name:'SIDE HUSTLE',color:'#2ec8ff',pts:'40 pts'},
+        {name:'TRUTH',color:'#ff2e8a',pts:'20 pts'},
+      ];
+      ctx.beginPath();ctx.arc(center,center,radius+6,0,Math.PI*2);ctx.lineWidth=8;ctx.strokeStyle='#1e1e1c';ctx.stroke();
+      for(let i=0;i<32;i++){
+        const a=(i/32)*Math.PI*2,len=i%4===0?10:5;
+        ctx.beginPath();ctx.moveTo(center+Math.cos(a)*(radius+2),center+Math.sin(a)*(radius+2));
+        ctx.lineTo(center+Math.cos(a)*(radius+2-len),center+Math.sin(a)*(radius+2-len));
+        ctx.lineWidth=i%4===0?2:1;ctx.strokeStyle='#333';ctx.stroke();
+      }
+      cats.forEach((cat,i)=>{
+        const start=-Math.PI/2+i*Math.PI/2, end=start+Math.PI/2;
+        ctx.beginPath();ctx.moveTo(center,center);ctx.arc(center,center,radius,start,end);ctx.closePath();
+        ctx.fillStyle=cat.color;ctx.fill();
+        const grad=ctx.createRadialGradient(center,center,radius*0.3,center,center,radius);
+        grad.addColorStop(0,'rgba(0,0,0,0.15)');grad.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=grad;ctx.fill();
+        ctx.lineWidth=2;ctx.strokeStyle='#0a0a0a';ctx.stroke();
+        ctx.save();ctx.translate(center,center);ctx.rotate(start+Math.PI/4);
+        ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillStyle='#0a0a0a';
+        ctx.font='bold 13px Syne';ctx.fillText(cat.name,radius*0.58,-6);
+        ctx.font='500 11px "Space Grotesk"';ctx.fillStyle='rgba(10,10,10,0.7)';
+        ctx.fillText(cat.pts,radius*0.58,10);ctx.restore();
+      });
+      ctx.beginPath();ctx.arc(center,center,32,0,Math.PI*2);
+      const hubGrad=ctx.createRadialGradient(center-5,center-5,2,center,center,32);
+      hubGrad.addColorStop(0,'#222');hubGrad.addColorStop(1,'#0a0a0a');
+      ctx.fillStyle=hubGrad;ctx.fill();ctx.lineWidth=3;ctx.strokeStyle='#333';ctx.stroke();
+      ctx.fillStyle='#d4ff2a';ctx.font='bold 13px Syne';ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('SPIN',center,center);
+    }
+
+    function spinWheel(){
+      if(state.spinning) return;
+      state.spinning=true;
+      const canvas=document.getElementById('wheel-canvas');
+      const extraDeg=Math.random()*360, spins=5+Math.floor(Math.random()*4);
+      currentRotation+=spins*360+extraDeg;
+      canvas.style.transition='transform 4.5s cubic-bezier(0.17,0.67,0.12,0.99)';
+      canvas.style.transform=`rotate(${currentRotation}deg)`;
+      const segIndex=Math.floor((extraDeg%360)/90);
+      const catKeys=['challenge','dare','sidehustle','truth'];
+      const landedCat=catKeys[segIndex];
+      setTimeout(()=>{state.spinning=false;launchConfetti();showTaskModal(landedCat);},4700);
+    }
+
+    // FIX: Only trigger Spacebar spin if NOT typing in an input/textarea
+    document.addEventListener('keydown',(e)=>{
+      if(e.code==='Space'){
+        // Check if user is typing in an input, textarea, or button
+        const tag = document.activeElement.tagName;
+        if(tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON') {
+          // Allow default behavior (typing a space)
+          return; 
+        }
+
+        // If we are here, user is not typing. Check if we are on the spin view.
+        if(document.getElementById('view-spin').classList.contains('active')){
+          e.preventDefault(); // Prevent page scroll
+          spinWheel();
+        }
+      }
+      if(e.code==='Escape'){
+        closeTaskModal();
+        document.getElementById('chat-panel').classList.remove('open');
+      }
+    });
+
+    /* ===================== TASK MODAL ===================== */
+    let currentTask=null, currentImageData=null;
+
+    function getRandomTask(category){
+      const done=state.completed.map(c=>c.taskId);
+      const defaults=TASKS[category].filter(t=>!done.includes(t.id));
+      const customs=state.customPrompts.filter(t=>t.category===category&&!done.includes(t.id));
+      const pool=[...defaults,...customs];
+      return pool.length?pool[Math.floor(Math.random()*pool.length)]:null;
+    }
+
+    function showTaskModal(category){
+      const task=getRandomTask(category);
+      if(!task){showToast(`You've completed all ${CAT_META[category].label} tasks! Try another.`,'info');return;}
+      currentTask=task; currentImageData=null;
+      const meta=CAT_META[category];
+      document.getElementById('modal-cat-badge').className=`cat-badge ${meta.badgeClass}`;
+      document.getElementById('modal-cat-badge').innerHTML=`<i class="fa-solid fa-bolt"></i>${meta.label}`;
+      document.getElementById('modal-task-text').textContent=task.text;
+      document.getElementById('modal-points').textContent=`${meta.points} points`;
+      document.getElementById('submit-proof-btn').disabled=true;
+      document.getElementById('upload-placeholder').style.display='block';
+      document.getElementById('upload-preview').style.display='none';
+      document.getElementById('upload-preview').innerHTML='';
+      document.getElementById('upload-zone').classList.remove('has-image');
+      document.getElementById('task-modal').classList.add('open');
+    }
+
+    function closeTaskModal(){
+      document.getElementById('task-modal').classList.remove('open');
+      currentTask=null; currentImageData=null;
+    }
+
+    const uploadZone=document.getElementById('upload-zone');
+    uploadZone.addEventListener('dragover',(e)=>{e.preventDefault();uploadZone.classList.add('dragover');});
+    uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('dragover'));
+    uploadZone.addEventListener('drop',(e)=>{
+      e.preventDefault();uploadZone.classList.remove('dragover');
+      const f=e.dataTransfer.files[0]; if(f&&f.type.startsWith('image/')) processFile(f);
+    });
+
+    function handleFileSelect(e){const f=e.target.files[0];if(f)processFile(f);e.target.value='';}
+
+    function processFile(file){
+      resizeImage(file,300,300,(data)=>{
+        currentImageData=data;
+        document.getElementById('upload-placeholder').style.display='none';
+        const p=document.getElementById('upload-preview');p.style.display='block';
+        p.innerHTML=`<img src="${data}" alt="Proof" style="max-height:160px;border-radius:8px;"/><p class="text-xs mt-2" style="color:var(--accent);">Photo ready</p>`;
+        document.getElementById('upload-zone').classList.add('has-image');
+        document.getElementById('submit-proof-btn').disabled=false;
+      });
+    }
+
+    function submitProof(){
+      if(!currentTask||!currentImageData) return;
+      const category=Object.keys(TASKS).find(k=>TASKS[k].some(t=>t.id===currentTask.id))
+        ||state.customPrompts.find(p=>p.id===currentTask.id)?.category;
+      if(!category) return;
+      const entry={taskId:currentTask.id,category,text:currentTask.text,points:CAT_META[category].points,image:currentImageData,timestamp:Date.now()};
+      state.completed.unshift(entry); state.points+=entry.points; saveState(); updateAllUI();
+      closeTaskModal(); launchConfetti();
+      showToast(`+${entry.points} points! "${currentTask.text.substring(0,40)}..."`,'success');
+    }
+
+    function renderLastCompleted(){
+      const el=document.getElementById('last-completed'), content=document.getElementById('last-completed-content');
+      if(!state.completed.length){el.style.display='none';return;}
+      el.style.display='block'; const last=state.completed[0], meta=CAT_META[last.category];
+      content.innerHTML=`<img src="${last.image}" alt="Proof"/>
+        <div style="flex:1;min-width:0;"><span class="cat-badge ${meta.badgeClass}" style="font-size:0.65rem;padding:2px 8px;">${meta.label}</span>
+        <p class="text-sm mt-1" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${last.text}</p>
+        <p class="text-xs mt-1" style="color:var(--accent);">+${last.points} pts</p></div>`;
+    }
+
+    /* ===================== LEADERBOARD ===================== */
+    function renderLeaderboard(){
+      const list=document.getElementById('leaderboard-list');
+      
+      // Prepare data: combine saved players + current user
+      let allPlayers = [...state.players];
+      
+      // Update or Add current user to the list for rendering purposes
+      const userEntryIndex = allPlayers.findIndex(p => p.name === state.username);
+      const currentUserEntry = {
+        name:state.username, 
+        points:state.points, 
+        completed:state.completed.length, 
+        isUser:true, 
+        banned: false // Current user is never banned from their own view
+      };
+
+      if(userEntryIndex >= 0) {
+          allPlayers[userEntryIndex] = currentUserEntry;
+      } else {
+          allPlayers.push(currentUserEntry);
+      }
+
+      // Filter out banned players
+      const activePlayers = allPlayers.filter(p => !p.banned);
+      activePlayers.sort((a,b)=>b.points-a.points);
+
+      list.innerHTML=activePlayers.map((p,i)=>{
+        const rank=i+1, rc=rank===1?'gold':rank===2?'silver':rank===3?'bronze':'';
+        const ri=rank<=3?['<i class="fa-solid fa-crown"></i>','<i class="fa-solid fa-medal"></i>','<i class="fa-solid fa-award"></i>'][rank-1]:rank;
+        const seed=p.name.replace(/[^a-zA-Z]/g,'');
+        return `<div class="lb-row ${p.isUser?'is-user':''}">
+          <div class="lb-rank ${rc}">${ri}</div>
+          <img class="lb-avatar" src="https://picsum.photos/seed/${seed}/72/72.jpg" alt="${p.name}"/>
+          <div style="flex:1;min-width:0;"><p class="font-semibold text-sm" style="${p.isUser?'color:var(--accent);':''}">${p.name}${p.isUser?' (You)':''}</p>
+          <p class="text-xs" style="color:var(--muted);">${p.completed} completed</p></div>
+          <div class="text-right"><p class="font-bold text-sm" style="color:var(--accent);">${p.points}</p>
+          <p class="text-xs" style="color:var(--muted);">pts</p></div></div>`;
+      }).join('');
+    }
+
+    /* ===================== PROFILE ===================== */
+    function renderProfile(){
+      document.getElementById('profile-name').textContent=state.username||'Player';
+      document.getElementById('profile-avatar').textContent=(state.username||'?')[0].toUpperCase();
+      document.getElementById('profile-rank').textContent='#'+getRank();
+      document.getElementById('profile-points').textContent=state.points;
+      document.getElementById('profile-completed').textContent=state.completed.length;
+      document.getElementById('profile-challenges').textContent=state.completed.filter(c=>c.category==='challenge').length;
+      document.getElementById('profile-dares').textContent=state.completed.filter(c=>c.category==='dare').length;
+      const history=document.getElementById('profile-history'), empty=document.getElementById('profile-empty');
+      if(!state.completed.length){history.innerHTML='';empty.style.display='block';return;}
+      empty.style.display='none';
+      history.innerHTML=state.completed.map(c=>{
+        const meta=CAT_META[c.category];
+        const date=new Date(c.timestamp).toLocaleDateString(undefined,{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});
+        return `<div class="history-item"><img src="${c.image}" alt="Proof"/>
+          <div style="flex:1;min-width:0;"><span class="cat-badge ${meta.badgeClass}" style="font-size:0.6rem;padding:2px 7px;">${meta.label}</span>
+          <p class="text-sm mt-1" style="line-height:1.4;">${c.text}</p>
+          <div class="flex items-center gap-3 mt-1"><span class="text-xs" style="color:var(--accent);">+${c.points} pts</span>
+          <span class="text-xs" style="color:var(--muted);">${date}</span></div></div></div>`;
+      }).join('');
+      
+      checkAdminAccess();
+    }
+
+    function checkAdminAccess(){
+        // Only show Admin button if username is Admin or Owner
+        if(state.username && (state.username.toLowerCase() === 'admin' || state.username.toLowerCase() === 'owner')){
+            document.getElementById('admin-btn-container').style.display = 'block';
+        } else {
+            document.getElementById('admin-btn-container').style.display = 'none';
+        }
+    }
+
+    function resetProgress(){
+      const ex=document.getElementById('reset-confirm'); if(ex) ex.remove();
+      const div=document.createElement('div'); div.id='reset-confirm';
+      div.style.cssText='position:fixed;inset:0;z-index:400;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:1rem;';
+      div.innerHTML=`<div class="modal-box" style="text-align:center;max-width:360px;">
+        <i class="fa-solid fa-triangle-exclamation text-3xl mb-3" style="color:var(--dare);"></i>
+        <p class="font-display font-bold text-lg mb-2">Reset All Progress?</p>
+        <p class="text-sm mb-5" style="color:var(--muted);">This erases all points, completed tasks, and custom prompts. Cannot be undone.</p>
+        <div class="flex gap-3 justify-center">
+          <button class="btn-ghost text-sm" onclick="document.getElementById('reset-confirm').remove()">Cancel</button>
+          <button class="btn-primary text-sm" style="background:var(--dare);" onclick="confirmReset()">Yes, Reset</button>
+        </div></div>`;
+      document.body.appendChild(div);
+    }
+    function confirmReset(){
+      state.points=0;state.completed=[];state.customPrompts=[];saveState();updateAllUI();renderProfile();
+      document.getElementById('reset-confirm').remove(); showToast('All progress has been reset.','warning');
+    }
+
+    /* ===================== CUSTOM PROMPTS ===================== */
+    let selectedCreateCat=null;
+
+    function selectCreateCat(cat){
+      selectedCreateCat=cat;
+      document.querySelectorAll('.cat-btn').forEach(b=>{
+        const active=b.dataset.cat===cat;
+        b.style.borderColor=active?CAT_META[cat].color:'';
+        b.style.color=active?CAT_META[cat].color:'';
+      });
+    }
+
+    document.getElementById('create-text').addEventListener('input',function(){
+      document.getElementById('create-char-count').textContent=this.value.length+' / 200';
+    });
+
+    function submitCustomPrompt(){
+      if(state.points<200){showToast('You need 200 points to create prompts.','warning');return;}
+      if(!selectedCreateCat){showToast('Pick a category first.','warning');return;}
+      const text=document.getElementById('create-text').value.trim();
+      if(text.length<10){showToast('Prompt must be at least 10 characters.','warning');return;}
+      state.customPrompts.push({id:'custom_'+Date.now(),category:selectedCreateCat,text:text});
+      saveState();
+      document.getElementById('create-text').value='';
+      document.getElementById('create-char-count').textContent='0 / 200';
+      selectedCreateCat=null;
+      document.querySelectorAll('.cat-btn').forEach(b=>{b.style.borderColor='';b.style.color='';});
+      renderCustomPromptsList();
+      showToast('Custom prompt added to the wheel!','success');
+    }
+
+    function renderCustomPromptsList(){
+      const list=document.getElementById('custom-prompts-list');
+      if(!state.customPrompts.length){list.innerHTML='<p class="text-sm" style="color:var(--muted);padding:1rem 0;">No custom prompts yet.</p>';return;}
+      list.innerHTML=state.customPrompts.map(p=>{
+        const meta=CAT_META[p.category];
+        return `<div class="history-item" style="align-items:center;">
+          <div style="flex:1;min-width:0;"><span class="cat-badge ${meta.badgeClass}" style="font-size:0.6rem;padding:2px 7px;">${meta.label}</span>
+          <p class="text-sm mt-1">${p.text}</p></div>
+          <button onclick="deleteCustomPrompt('${p.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;padding:0.5rem;" aria-label="Delete">
+            <i class="fa-solid fa-trash-can"></i></button></div>`;
+      }).join('');
+    }
+
+    function deleteCustomPrompt(id){
+      state.customPrompts=state.customPrompts.filter(p=>p.id!==id);saveState();
+      renderCustomPromptsList(); showToast('Prompt deleted.','info');
+    }
+
+    function renderCreateView(){
+      const locked=state.points<200;
+      document.getElementById('create-locked').style.display=locked?'flex':'none';
+      document.getElementById('create-progress').textContent=state.points;
+      document.getElementById('create-progress-bar').style.width=Math.min(100,(state.points/200)*100)+'%';
+      renderCustomPromptsList();
+    }
+
+    /* ===================== ADMIN PANEL ===================== */
+    function renderAdminPanel(){
+        const list = document.getElementById('admin-player-list');
+        list.innerHTML = '';
+        
+        // Combine current user into the player list for management
+        let managedPlayers = [...state.players];
+        const userIndex = managedPlayers.findIndex(p => p.name === state.username);
+        const currentUser = {name: state.username, points: state.points, completed: state.completed.length, isUser: true, banned: false};
+        
+        if(userIndex >= 0) {
+            managedPlayers[userIndex] = currentUser;
+        } else {
+            managedUsers.push(currentUser); // Typo fixed in thought process, should be managedPlayers
+        }
+
+        // Sort alphabetically for easier finding
+        managedPlayers.sort((a,b) => a.name.localeCompare(b.name));
+
+        list.innerHTML = managedPlayers.map((p, idx) => {
+            const isBanned = p.banned;
+            const banBtnText = isBanned ? 'Unban' : 'Ban';
+            const banBtnClass = isBanned ? 'btn-primary' : 'btn-danger';
+            
+            return `
+            <div class="admin-row" id="admin-row-${idx}">
+                <div style="flex:1;min-width:0;">
+                    <div class="font-bold text-sm">${p.name} ${p.isUser ? '(You)' : ''}</div>
+                    <div class="text-xs" style="color:var(--muted);">${p.points} pts</div>
+                </div>
+                <div style="display:flex;gap:0.5rem;align-items:center;">
+                    <input type="number" class="admin-input" placeholder="+/-" id="pts-input-${idx}" />
+                    <button class="btn-sm" style="background:var(--accent);color:#000;" onclick="adminUpdatePoints('${p.name}', ${idx})">Set</button>
+                    <button class="btn-sm ${banBtnClass}" onclick="adminToggleBan('${p.name}')">${banBtnText}</button>
+                </div>
+            </div>
+            `;
+        }).join('');
+    }
+
+    function adminUpdatePoints(name, idx){
+        const input = document.getElementById(`pts-input-${idx}`);
+        const val = parseInt(input.value);
+        if(isNaN(val)) return;
+
+        // Find player in state.players
+        const pIndex = state.players.findIndex(p => p.name === name);
+        
+        if(pIndex >= 0) {
+            // Modifying fake player
+            state.players[pIndex].points += val;
+        } else if (name === state.username) {
+            // Modifying self
+            state.points += val;
+        }
+
+        saveState();
+        showToast(`Updated ${name} points by ${val}`, 'success');
+        renderAdminPanel(); // Re-render to show new score
+    }
+
+    function adminToggleBan(name){
+        if(name === state.username) {
+            showToast("You cannot ban yourself!", "error");
+            return;
+        }
+
+        const pIndex = state.players.findIndex(p => p.name === name);
+        if(pIndex >= 0) {
+            state.players[pIndex].banned = !state.players[pIndex].banned;
+            saveState();
+            renderAdminPanel();
+            showToast(`${name} is now ${state.players[pIndex].banned ? 'BANNED' : 'Active'}`, state.players[pIndex].banned ? 'warning' : 'success');
+        }
+    }
+
+    /* ===================== AI CHATBOT ===================== */
+    let chatOpen=false, chatHistory=[];
+
+    function toggleChat(){
+      chatOpen=!chatOpen;
+      document.getElementById('chat-panel').classList.toggle('open',chatOpen);
+      if(chatOpen&&chatHistory.length===0)
+        addChatBubble("Hey! I'm Spark, your guide to Spin & Dare. Ask me anything about how the app works, points, the wheel, creating prompts, or whatever else is on your mind.",'ai');
+      if(chatOpen) document.getElementById('chat-input').focus();
+    }
+
+    function addChatBubble(text,sender){
+      chatHistory.push({text,sender});
+      const c=document.getElementById('chat-messages'), b=document.createElement('div');
+      b.className=`chat-bubble ${sender}`; b.textContent=text; c.appendChild(b); c.scrollTop=c.scrollHeight;
+    }
+
+    function sendChat(){
+      const input=document.getElementById('chat-input'), msg=input.value.trim();
+      if(!msg) return; 
+      input.value=''; 
+      addChatBubble(msg,'user');
+      setTimeout(()=>addChatBubble(generateAIResponse(msg.toLowerCase()),'ai'),400+Math.random()*600);
+    }
+
+    function generateAIResponse(msg){
+      const n=state.username||'friend';
+      if(/\b(hi|hello|hey|sup|yo|howdy|hola)\b/.test(msg)) 
+        return pick([
+          `Hey ${n}! What can I help you with?`,
+          `Hello there! Ready to spin?`,
+          `What's up, ${n}? I'm here to help!`,
+          `Hi! Need to know the rules?`,
+          `Greetings! How can I assist you today?`,
+          `Yo ${n}! Ask me anything about the game.`
+        ]);
+
+      if(/\b(thanks|thank you|thx|ty|appreciate)\b/.test(msg)) 
+        return pick([
+          "You're welcome! Anything else?",
+          "Happy to help! Spin away!",
+          "No problem at all!",
+          "My pleasure! Go get those points.",
+          "Anytime! Let me know if you have more questions."
+        ]);
+
+      if(/\b(who are you|what are you|your name)\b/.test(msg)) 
+        return pick([
+          "I'm Spark, the built-in AI assistant for Spin & Dare. I know everything about how this app works — points, the wheel, leaderboards, custom prompts, you name it.",
+          "Call me Spark! I'm your digital guide to climbing the leaderboard.",
+          "I'm Spark! I live right here in your browser to answer your questions about the game."
+        ]);
+
+      if(/\b(point|points|pts|score|earn|scoring)\b/.test(msg)) 
+        return pick([
+          `Points breakdown:\n\n• Challenge: 30 pts\n• Dare: 50 pts\n• Side Hustle: 40 pts\n• Truth: 20 pts\n\nYou have ${state.points} points. Upload photo proof to earn them!`,
+          `Want points? Challenges give 30, Dares give 50 (the most!), Side Hustles are 40, and Truths are 20. You currently have ${state.points}.`,
+          `Scoring is simple: Prove you did the task, get the points. Dares are high risk, high reward at 50pts!`
+        ]);
+
+      if(/\b(how|play|start|begin|tutorial|guide|rules|works|explain)\b/.test(msg)) 
+        return pick([
+          `How it works:\n\n1. Spin the wheel — land on Challenge, Dare, Side Hustle, or Truth.\n2. Complete the task in real life.\n3. Upload a photo as proof.\n4. Earn points based on difficulty.\n5. Climb the global leaderboard!\n\nAt 200 points you unlock custom prompt creation.`,
+          `Easy! Spin the wheel. Do the thing. Snap a pic. Get points. Repeat! You need 200 points to unlock the 'Create' tab.`,
+          `Just tap the wheel to spin. Once it stops, do the challenge, upload a photo, and you'll get points. Different categories are worth different amounts!`
+        ]);
+
+      if(/\b(spin|wheel|roll|turn|rotate)\b/.test(msg)) 
+        return pick([
+          "The wheel has 4 equal segments — Challenge (lime green), Dare (orange), Side Hustle (cyan), Truth (pink). Click it or press Space. It's totally random!",
+          "Just click the wheel to spin. The pointer at the top determines what you get. Good luck!",
+          "The wheel is the heart of the game. It determines your fate. Just tap it!"
+        ]);
+
+      if(/\b(challenge|challenges)\b/.test(msg)&&!/\bdare\b/.test(msg)) 
+        return pick([
+          "Challenges test creativity and skills — build a paper tower, cook with 3 ingredients, do a coin trick. 30 points each, 12 unique ones to complete!",
+          "Challenges are fun skill tests. They are worth 30 points. Examples include taking artistic photos or organizing a space.",
+          "Look for the Lime Green category. Challenges are worth a solid 30 points and usually require some creativity."
+        ]);
+
+      if(/\b(dare|dares)\b/.test(msg)) 
+        return pick([
+          "Dares are bold, sometimes embarrassing — sing to a friend, wear clothes inside out, eat a weird condiment. Highest value at 50 points because they require guts!",
+          "Dares (Orange) are worth 50 points! That's the highest payout. You gotta be brave to do these.",
+          "If you're feeling risky, aim for the Dares. 50 points per task, but you might look a little silly doing them."
+        ]);
+
+      if(/\b(side hustle|hustle|money|business|freelance)\b/.test(msg)) 
+        return pick([
+          "Side Hustle tasks build real income skills — set up listings, create budgets, design logos, find freelance gigs. 40 points each. Could actually make you money!",
+          "Side Hustles (Blue) are worth 40 points. They are designed to help you learn business skills.",
+          "Want to make money? Do the Side Hustle challenges. They teach you about budgeting, selling, and freelancing."
+        ]);
+
+      if(/\b(truth|truths|honest|confess)\b/.test(msg)) 
+        return pick([
+          "Truths are personal questions — beliefs you've changed, embarrassing stories, secret skills. 20 points (lowest since easiest). Write your answer and snap a photo!",
+          "Truths (Pink) are the easiest at 20 points, but you have to be honest!",
+          "If you land on Truth, you just have to answer a question honestly. 20 points for opening up."
+        ]);
+
+      if(/\b(leaderboard|leader board|rank|ranking|top|board|global|worldwide)\b/.test(msg)) 
+        return pick([
+          `The leaderboard ranks all players by total points. You're #${getRank()} worldwide with ${state.points} points. Top 3 get special icons. Keep completing tasks to climb!`,
+          `Check your rank on the Board tab. Right now you are #${getRank()}. Can you make it to the top 10?`,
+          `Global rankings are based on total points. You have ${state.points} points. Keep spinning to overtake ${state.players[0].name}!`
+        ]);
+
+      if(/\b(photo|picture|image|proof|upload|camera|submit)\b/.test(msg)) 
+        return pick([
+          "Upload a photo proving you did the task. Click or drag into the upload area. Images are compressed and stored locally — nothing leaves your device!",
+          "Proof is required for points. Just take a pic of you doing the task and upload it in the popup.",
+          "No photo, no points! Make sure your image clearly shows you completed the challenge."
+        ]);
+
+      if(/\b(custom|create|own prompt|make my own|write my own)\b/.test(msg)){
+        if(state.points>=200) 
+          return pick([
+            "You've unlocked custom prompts! Go to the Create tab, pick a category, and write your prompt. It gets added to the wheel's pool!",
+            "You have the power! Create your own dares or challenges in the Create tab.",
+            "Unlocked! Go to 'Create' and add your own tasks to the game."
+          ]);
+        return pick([
+          `Custom prompts unlock at 200 points. You have ${state.points}/${200}. ${200-state.points} more to go!`,
+          `Keep spinning! You need ${200-state.points} more points to unlock the ability to create your own prompts.`,
+          `The Create tab is locked until you hit 200 points. You are getting close!`
+        ]);
+      }
+
+      if(/\b(unlock|locked|access)\b/.test(msg)) 
+        return pick([
+          `Only Custom Prompts is locked (200 points needed). You have ${state.points}/${200}. Everything else is available from the start!`,
+          "Just the Create tab is locked. Spin more to earn points and unlock it!",
+          "200 points is the magic number to unlock full access to the creator tools."
+        ]);
+
+      if(/\b(reset|delete|clear|start over)\b/.test(msg)) 
+        return pick([
+          "Reset from the Profile page — 'Reset All Progress' link under history. Erases everything, can't be undone!",
+          "Want to start fresh? Go to Profile and hit Reset. But be careful, you lose all points.",
+          "You can wipe your data in the Profile tab. This is irreversible!"
+        ]);
+
+      if(/\b(banned|ban)\b/.test(msg)) 
+        return pick([
+            "Players can be banned by the Admin. If you are banned, you won't appear on the leaderboard.",
+            "Banned users are removed from the public ranking."
+        ]);
+
+      if(/\b(update|version|news)\b/.test(msg)) 
+        return pick([
+            "Check the 'Updates' tab in the navigation bar to see the latest changes and version history.",
+            "I can tell you about the latest update: We added Admin controls and an Updates log!"
+        ]);
+
+      if(/\b(bored|boring|fun|joke|funny)\b/.test(msg)) 
+        return pick([
+          "Bored? Go spin the wheel! Worst case: a truth question. Best case: wearing your shirt inside out in public.",
+          "Fun fact: Dares are worth the most because people skip them most. Prove them wrong!",
+          "I'm just an AI, I don't tell jokes. But the Dare section usually has some pretty funny outcomes.",
+          "Spin the wheel! That's the cure for boredom."
+        ]);
+
+      if(/\b(good|great|awesome|cool|nice|amazing|love)\b/.test(msg)) 
+        return pick([
+          "Glad you're enjoying it! Keep spinning and climbing that leaderboard.",
+          "The best part is watching your points stack up. Go get more!",
+          "Thanks! I love helping players win."
+        ]);
+
+      if(/\b(bad|bug|broken|error|wrong|issue|problem)\b/.test(msg)) 
+        return pick([
+          "Sorry about that! Try refreshing the page. If it persists, reset from Profile as a last resort. What's going wrong?",
+          "Having trouble? Let me know specifically what's happening and I'll
