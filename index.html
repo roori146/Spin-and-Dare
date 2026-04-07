@@ -1,6 +1,6 @@
-<!DOCTYPE html>
+PE html>
 <html lang="en">
-<head>
+<head><!DOCTY
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Spin & Dare</title>
@@ -116,6 +116,14 @@
     .lock-overlay{position:absolute;inset:0;background:rgba(10,10,10,0.85);backdrop-filter:blur(6px);
       border-radius:20px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1rem;z-index:2;}
     
+    /* Shake Animation for Input Error */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+      20%, 40%, 60%, 80% { transform: translateX(5px); }
+    }
+    .shake-input { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; border-color: var(--dare) !important; }
+
     /* Admin & Updates Styles */
     .update-item{position:relative;padding-left:1.5rem;border-left:2px solid var(--border);padding-bottom:1.5rem;}
     .update-item:last-child{border-left-color:transparent;}
@@ -145,10 +153,13 @@
       <p class="text-lg mb-2" style="color:var(--fg);">Spin the wheel. Complete challenges. Climb the leaderboard.</p>
       <p class="mb-8" style="color:var(--muted);font-size:0.9rem;">Challenges, dares, side hustles, and truths — with photo proof to earn points.</p>
       <div class="mb-4">
+        <!-- Added onkeydown for Enter key support -->
         <input id="username-input" type="text" maxlength="16" placeholder="Pick a username..."
           style="width:100%;padding:0.85rem 1.2rem;border-radius:12px;border:1px solid var(--border);background:var(--bg2);
           color:var(--fg);font-family:inherit;font-size:1rem;outline:none;text-align:center;transition:border-color 0.3s;"
-          onfocus="this.style.borderColor='var(--accent-dim)'" onblur="this.style.borderColor='var(--border)'" />
+          onfocus="this.style.borderColor='var(--accent-dim)'" 
+          onblur="this.style.borderColor='var(--border)'" 
+          onkeydown="if(event.key==='Enter') completeOnboarding()" />
       </div>
       <button class="btn-primary" style="width:100%;" onclick="completeOnboarding()">Let's Go</button>
     </div>
@@ -551,9 +562,23 @@
     /* ===================== ONBOARDING ===================== */
     function completeOnboarding(){
       const inp=document.getElementById('username-input'), name=inp.value.trim();
-      if(!name){inp.style.borderColor='var(--dare)';return;}
-      state.username=name; saveState();
+      
+      // FIX 1: Improved Validation
+      if(!name){
+        showToast('Please enter a username to start!','warning');
+        inp.classList.add('shake-input');
+        inp.focus();
+        // Remove animation class after it plays so it can be triggered again
+        setTimeout(() => inp.classList.remove('shake-input'), 400);
+        return;
+      }
+      
+      state.username=name; 
+      saveState(); 
+      
+      // Hide onboarding
       document.getElementById('onboarding').classList.add('hidden');
+      
       checkAdminAccess(); // Check if user is admin
       updateAllUI();
       showToast(`Welcome, ${name}! Spin the wheel to begin.`,'success');
@@ -894,7 +919,7 @@
         if(userIndex >= 0) {
             managedPlayers[userIndex] = currentUser;
         } else {
-            managedUsers.push(currentUser); // Typo fixed in thought process, should be managedPlayers
+            managedPlayers.push(currentUser);
         }
 
         // Sort alphabetically for easier finding
@@ -1128,7 +1153,27 @@
           "Thanks! I love helping players win."
         ]);
 
-      if(/\b(bad|bug|broken|error|wrong|issue|problem)\b/.test(msg)) 
-        return pick([
-          "Sorry about that! Try refreshing the page. If it persists, reset from Profile as a last resort. What's going wrong?",
-          "Having trouble? Let me know specifically what's happening and I'll
+      return "I'm not sure about that one. Try asking me about points, the wheel, or specific categories like Dare or Truth!";
+    }
+
+    /* ===================== INITIALIZATION ===================== */
+    // FIX 2: Add Initialization to handle page reloads
+    function init() {
+      loadState();
+      
+      // If user already has a name, skip onboarding
+      if (state.username) {
+        document.getElementById('onboarding').classList.add('hidden');
+        checkAdminAccess();
+        updateAllUI();
+      }
+      
+      drawWheel();
+    }
+
+    // Run initialization when DOM is ready
+    document.addEventListener('DOMContentLoaded', init);
+
+  </script>
+</body>
+</html>
